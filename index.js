@@ -28,7 +28,7 @@ function hw1()
     for (let number of numbers) 
     {
         //Обнуление счетчика если он больше, чем длина массика цветов
-        if (counter === 3) counter = 0;
+        if (counter === colorsArr.length) counter = 0;
 
         console.log(colorsArr[counter](number));
         counter++;
