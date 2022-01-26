@@ -130,7 +130,13 @@ function hw2() {
 
 }
 
+//Домашняя работа 3
+function hw3(){
+
+}
+
 //hw1();
 //lesson2();
-hw2(); // Example: node index 10-02-02-2022
+//hw2(); // Example: node index 10-02-02-2022
+hw3();
 
