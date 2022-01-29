@@ -209,13 +209,13 @@ function lesson3() {
     const payedAccount = false;
     const readStream = fs.createReadStream(ACCESS_LOG, 'utf-8');
     const tStream = new Transform({
-        transform(chunck, encoding, callback){
-            if(!payedAccount){
+        transform(chunck, encoding, callback) {
+            if (!payedAccount) {
                 const transformedData = chunck
-                .toString()
-                .replace(/\d+\.\d+\.\d+\.\d+/g, '[IP was hidden]');
+                    .toString()
+                    .replace(/\d+\.\d+\.\d+\.\d+/g, '[IP was hidden]');
                 this.push(transformedData);
-            }else{
+            } else {
                 this.push(chunk);
             }
 
@@ -227,9 +227,32 @@ function lesson3() {
 
 }
 
+function hw3() {
+    const fs = require('fs');
+    var readline = require('linebyline'),
+        rl = readline('./access.log');
+
+    const ipArray = ['89.123.1.41', '34.48.240.111', '22.22.222.222'];
+
+    rl
+    .on('line', function (line, lineCount, byteCount) {
+        ipArray.forEach(element => {
+            if (line.indexOf(element) === 0) {
+                fs.createWriteStream(`./${element}_requests.log`, {
+                    encoding: 'utf-8',
+                    flags: 'a',
+                }).write(`${line}\n`);
+            }
+        });
+    })
+    .on('error', function (e) {
+        console.log('something went wrong');
+    });
+}
+
 //hw1();
 //lesson2();
 //hw2(); // Example: node index 10-02-02-2022
-lesson3();
-//hw3();
+//lesson3();
+hw3();
 
