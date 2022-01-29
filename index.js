@@ -130,7 +130,129 @@ function hw2() {
 
 }
 
+//Домашняя работа 3
+function lesson3() {
+    const fs = require('fs');
+    const fsPromises = require('fs/promises');
+    const { Transform } = require('stream');
+    const ACCESS_LOG = './access.log';
+
+    //const data = fs.readFileSync(ACCESS_LOG);
+    //console.log(data);
+
+    /*fs.readFile(ACCESS_LOG, 'utf-8', (err, data) => {
+        if(err) console.log(err);
+        else console.log(data);
+    });*/
+
+    /*fsPromises.readFile(ACCESS_LOG, 'utf-8').then((data) => {
+        console.log(data);
+    }).catch((err) => {
+        console.log(err);
+    });*/
+
+    const requests = [
+        `127.0.0.1 - - [25/May/2021:00:07:17 +0000] "GET /foo HTTP/1.1" 200 0 "-" "curl/7.47.0"`,
+        `127.0.0.1 - - [25/May/2021:00:07:24 +0000] "POST /baz HTTP/1.1" 200 0 "-" "curl/7.47.0"`,
+    ];
+
+    /*fs.writeFile(
+        ACCESS_LOG, 
+        requests[0] + '\n', 
+        {
+            encoding: 'utf-8',
+            flag: 'a',
+        },
+        console.log
+    );*/
+
+    /*fs.appendFile(
+        ACCESS_LOG, 
+        requests[1] + '\n', 
+        {
+            encoding: 'utf-8',
+            flag: 'a',
+        },
+        console.log
+    );*/
+
+    //  fs.ReadStream(); //class
+    //  fs.createReadStream();
+
+    /*const readStream = fs.createReadStream(ACCESS_LOG, {
+        //  flags: '' ,
+        //  autoClose ,
+        //  start ,
+        //  end ,
+        highWaterMark: 64,
+        //  fs ,
+        //  fd ,
+    });*/
+
+    /*readStream.on('data', (chunk) => { //   chunk - кусочек
+        console.log('chunk', chunk);
+    });*/
+
+    /*
+    const writeStream = fs.createWriteStream(ACCESS_LOG, {
+        encoding: 'utf-8',
+        flags: 'a',
+    });
+    requests.forEach((logString) => {
+        writeStream.write(`${logString}\n\n`);
+    });
+    writeStream.end(() => {
+        console.log('end'); 
+    });
+    */
+
+    const payedAccount = false;
+    const readStream = fs.createReadStream(ACCESS_LOG, 'utf-8');
+    const tStream = new Transform({
+        transform(chunck, encoding, callback) {
+            if (!payedAccount) {
+                const transformedData = chunck
+                    .toString()
+                    .replace(/\d+\.\d+\.\d+\.\d+/g, '[IP was hidden]');
+                this.push(transformedData);
+            } else {
+                this.push(chunk);
+            }
+
+            callback();
+        }
+    });
+
+    readStream.pipe(tStream).pipe(process.stdout);
+
+}
+
+function hw3() {
+    const fs = require('fs');
+    var readline = require('linebyline'),
+        rl = readline('./access.log');
+
+    const ipArray = ['89.123.1.41', '34.48.240.111', '22.22.222.222'];
+
+    rl
+    .on('line', function (line, lineCount, byteCount) {
+        ipArray.forEach(element => {
+            if (line.indexOf(element) === 0) {
+                fs.createWriteStream(`./${element}_requests.log`, {
+                    encoding: 'utf-8',
+                    flags: 'a',
+                }).write(`${line}\n`);
+            }
+        });
+    })
+    .on('error', function (e) {
+        console.log('something went wrong');
+    });
+}
+
 //hw1();
 //lesson2();
-hw2(); // Example: node index 10-02-02-2022
+//hw2(); // Example: node index 10-02-02-2022
+//lesson3();
+hw3();
 
