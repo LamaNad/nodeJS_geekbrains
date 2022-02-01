@@ -235,24 +235,113 @@ function hw3() {
     const ipArray = ['89.123.1.41', '34.48.240.111', '22.22.222.222'];
 
     rl
-    .on('line', function (line, lineCount, byteCount) {
-        ipArray.forEach(element => {
-            if (line.indexOf(element) === 0) {
-                fs.createWriteStream(`./${element}_requests.log`, {
-                    encoding: 'utf-8',
-                    flags: 'a',
-                }).write(`${line}\n`);
-            }
+        .on('line', function (line, lineCount, byteCount) {
+            ipArray.forEach(element => {
+                if (line.indexOf(element) === 0) {
+                    fs.createWriteStream(`./${element}_requests.log`, {
+                        encoding: 'utf-8',
+                        flags: 'a',
+                    }).write(`${line}\n`);
+                }
+            });
+        })
+        .on('error', function (e) {
+            console.log('something went wrong');
         });
-    })
-    .on('error', function (e) {
-        console.log('something went wrong');
+}
+
+// CLI APP
+function lesson4() {
+    const fs = require('fs');
+    const fsPromises = require('fs/promises');
+    // const yargs = require('yargs');
+    const readline = require("readline");
+    const path = require("path");
+    const inquirer = require("inquirer");
+
+    // const [filePath] = process.argv.slice(2);
+
+    /*
+    const options = yargs
+        .usage('Usage: -p <path to the file>')
+        .option('p', {
+            alias: 'path',
+            describe: 'Path to the file',
+            type: 'String',
+            demandOption: true,
+        }).argv;
+
+    console.log(options);
+
+    fs.readFile(options.path, 'utf-8', (err, data) => {
+        if(err) console.log(err);
+        else console.log(data);
+    });
+    */
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    /*
+    rl.question("Please enter the path to the file: ", (filePath) => {
+        console.log(filePath);
+
+        rl.question("Please enter the encode: ", (encode) => {
+            console.log(encode);
+            fs.readFile(filePath, encode, (err, data) => {
+                if(err) console.log(err);
+                else console.log(data);
+            });
+            rl.close();
+        });
+        
+    });
+    */
+
+    /*
+    const question = async (query) => new Promise(resolve => rl.question(query, resolve));
+
+    (async () => {
+        const filePath = await question('Please enter the path to the file: ');
+        const encode = await question('Please enter the encode: ');
+
+        const fullPath = path.resolve(__dirname, filePath);
+
+        const data = await fsPromises.readFile(fullPath, encode);
+
+        console.log(data);
+        console.log(fullPath);
+
+        rl.close();
+    })();
+    */
+    const executionDir = process.cwd();
+
+    const isFile = (fileName) => fs.lstatSync(fileName).isFile();
+
+    const fileList = fs.readdirSync('./').filter(isFile);
+
+    inquirer.prompt([
+        {
+            name: 'fileName',
+            type: 'list', // input, number, confirm, list, checkbox, password
+            message: 'Please choose file: ',
+            choices: fileList,
+        }
+    ]).then(({ fileName }) => {
+        //console.log(fileName);        
+        const fullPath = path.join(__dirname, fileName);
+        const data = fs.readFileSync(fullPath, 'utf-8');
+        console.log(data);
     });
 }
+
 
 //hw1();
 //lesson2();
 //hw2(); // Example: node index 10-02-02-2022
 //lesson3();
-hw3();
-
+//hw3();
+lesson4(); // CLI
