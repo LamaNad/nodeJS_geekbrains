@@ -338,10 +338,112 @@ function lesson4() {
     });
 }
 
+function lesson5() {
+    const http = require("http");
+    const url = require("url");
+    const path = require("path");
+    const cluster = require('cluster');
+    const os = require('os');
+
+    // const fullPath = path.join(__dirname, './index.html');
+    // const readStream = fs.createReadStream(fullPath);
+
+    // const server = http.createServer((req, res) => {
+    //console.log('url: ', req.url);
+    //console.log('method: ', req.method);
+    //console.log('headers: ', req.headers);
+    //res.write("Hello 3");
+
+    //res.setHeader('my-header', 'testing-header');
+    /*
+    res.writeHead(200, 'OK', {
+        'first-header': 'header 1',
+        'second-header': 'header 2'
+    });
+
+    res.end("\nScripts ends");
+    */
+
+    //url
+    // if(req.url === '/user') {
+    //     res.end('User found');
+    // }else   {
+    //     res.writeHead(404, 'User not found', {
+    //         'my-header': 'Testing',
+    //     });
+    //     res.end('User not found');
+    // }
+
+    // METHOD
+    // if(req.method === 'GET') {
+    //     res.end('Method Allowed');
+    // }else   {
+    //     res.writeHead(404, 'Method not allowed', {
+    //         'my-header': 'Testing',
+    //     });
+    //     res.end('Method not allowed');
+    // }
+
+    // const { query } = url.parse(req.url, true);
+    // console.log(query);
+    // res.end(JSON.stringify(query));
+
+    // if(req.method === 'POST'){
+    //     let data = '';
+    //     req.on('data', (chunk => data += chunk));
+    //     req.on('end', () => {
+    //         const parsedData = JSON.parse(data);
+    //         console.log(data);
+    //         console.log(parsedData);
+
+    //         res.writeHead(200, 'OK', {
+    //             'Content-Type': 'application/json'
+    //         });
+    //         res.end(data);
+    //     });
+    // } else{
+    //     res.end();
+    // }
+
+    //     res.writeHead(200, {
+    //         'Content-Type': 'text/html',
+    //     });
+    //     readStream.pipe(res);
+
+    // }).listen(5555, 'localhost');
+
+    //server.listen(5555);
+
+    if (cluster.isMaster) {
+        console.log(`Master ${process.pid} is running...`);
+        for (let i = 0; i < os.cpus().length * 2; i++) {
+            console.log(`Forking process number ${i}`);
+            cluster.fork();
+        }
+    } else {
+        console.log(`Worker ${process.pid} is running...`);
+        const fullPath = path.join(__dirname, './index.html');
+        const readStream = fs.createReadStream(fullPath);
+
+        const server = http.createServer((req, res) => {
+            setInterval(() => {
+                console.log(`Worker ${process.pid} handling request`);
+                res.writeHead(200, {
+                    'Content-Type': 'text/html',
+                });
+                readStream.pipe(res);
+            }, 5000);
+        });
+
+        server.listen(5555);
+    }
+
+}
 
 //hw1();
 //lesson2();
 //hw2(); // Example: node index 10-02-02-2022
 //lesson3();
 //hw3();
-lesson4(); // CLI
+//lesson4(); // CLI
+lesson5(); //HTTP 
