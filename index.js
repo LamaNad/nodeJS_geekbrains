@@ -235,24 +235,270 @@ function hw3() {
     const ipArray = ['89.123.1.41', '34.48.240.111', '22.22.222.222'];
 
     rl
-    .on('line', function (line, lineCount, byteCount) {
-        ipArray.forEach(element => {
-            if (line.indexOf(element) === 0) {
-                fs.createWriteStream(`./${element}_requests.log`, {
-                    encoding: 'utf-8',
-                    flags: 'a',
-                }).write(`${line}\n`);
-            }
+        .on('line', function (line, lineCount, byteCount) {
+            ipArray.forEach(element => {
+                if (line.indexOf(element) === 0) {
+                    fs.createWriteStream(`./${element}_requests.log`, {
+                        encoding: 'utf-8',
+                        flags: 'a',
+                    }).write(`${line}\n`);
+                }
+            });
+        })
+        .on('error', function (e) {
+            console.log('something went wrong');
         });
-    })
-    .on('error', function (e) {
-        console.log('something went wrong');
+}
+
+// CLI APP
+function lesson4() {
+    const fs = require('fs');
+    const fsPromises = require('fs/promises');
+    // const yargs = require('yargs');
+    const readline = require("readline");
+    const path = require("path");
+    const inquirer = require("inquirer");
+
+    // const [filePath] = process.argv.slice(2);
+
+    /*
+    const options = yargs
+        .usage('Usage: -p <path to the file>')
+        .option('p', {
+            alias: 'path',
+            describe: 'Path to the file',
+            type: 'String',
+            demandOption: true,
+        }).argv;
+
+    console.log(options);
+
+    fs.readFile(options.path, 'utf-8', (err, data) => {
+        if(err) console.log(err);
+        else console.log(data);
+    });
+    */
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    /*
+    rl.question("Please enter the path to the file: ", (filePath) => {
+        console.log(filePath);
+
+        rl.question("Please enter the encode: ", (encode) => {
+            console.log(encode);
+            fs.readFile(filePath, encode, (err, data) => {
+                if(err) console.log(err);
+                else console.log(data);
+            });
+            rl.close();
+        });
+        
+    });
+    */
+
+    /*
+    const question = async (query) => new Promise(resolve => rl.question(query, resolve));
+
+    (async () => {
+        const filePath = await question('Please enter the path to the file: ');
+        const encode = await question('Please enter the encode: ');
+
+        const fullPath = path.resolve(__dirname, filePath);
+
+        const data = await fsPromises.readFile(fullPath, encode);
+
+        console.log(data);
+        console.log(fullPath);
+
+        rl.close();
+    })();
+    */
+    const executionDir = process.cwd();
+
+    const isFile = (fileName) => fs.lstatSync(fileName).isFile();
+
+    const fileList = fs.readdirSync('./').filter(isFile);
+
+    inquirer.prompt([
+        {
+            name: 'fileName',
+            type: 'list', // input, number, confirm, list, checkbox, password
+            message: 'Please choose file: ',
+            choices: fileList,
+        }
+    ]).then(({ fileName }) => {
+        //console.log(fileName);        
+        const fullPath = path.join(__dirname, fileName);
+        const data = fs.readFileSync(fullPath, 'utf-8');
+        console.log(data);
     });
 }
+
+function lesson5() {
+    const http = require("http");
+    const url = require("url");
+    const path = require("path");
+    const cluster = require('cluster');
+    const os = require('os');
+    const fs = require("fs");
+
+    // const fullPath = path.join(__dirname, './index.html');
+    // const readStream = fs.createReadStream(fullPath);
+
+    // const server = http.createServer((req, res) => {
+    //console.log('url: ', req.url);
+    //console.log('method: ', req.method);
+    //console.log('headers: ', req.headers);
+    //res.write("Hello 3");
+
+    //res.setHeader('my-header', 'testing-header');
+    /*
+    res.writeHead(200, 'OK', {
+        'first-header': 'header 1',
+        'second-header': 'header 2'
+    });
+
+    res.end("\nScripts ends");
+    */
+
+    //url
+    // if(req.url === '/user') {
+    //     res.end('User found');
+    // }else   {
+    //     res.writeHead(404, 'User not found', {
+    //         'my-header': 'Testing',
+    //     });
+    //     res.end('User not found');
+    // }
+
+    // METHOD
+    // if(req.method === 'GET') {
+    //     res.end('Method Allowed');
+    // }else   {
+    //     res.writeHead(404, 'Method not allowed', {
+    //         'my-header': 'Testing',
+    //     });
+    //     res.end('Method not allowed');
+    // }
+
+    // const { query } = url.parse(req.url, true);
+    // console.log(query);
+    // res.end(JSON.stringify(query));
+
+    // if(req.method === 'POST'){
+    //     let data = '';
+    //     req.on('data', (chunk => data += chunk));
+    //     req.on('end', () => {
+    //         const parsedData = JSON.parse(data);
+    //         console.log(data);
+    //         console.log(parsedData);
+
+    //         res.writeHead(200, 'OK', {
+    //             'Content-Type': 'application/json'
+    //         });
+    //         res.end(data);
+    //     });
+    // } else{
+    //     res.end();
+    // }
+
+    //     res.writeHead(200, {
+    //         'Content-Type': 'text/html',
+    //     });
+    //     readStream.pipe(res);
+
+    // }).listen(5555, 'localhost');
+
+    //server.listen(5555);
+
+    if (cluster.isMaster) {
+        console.log(`Master ${process.pid} is running...`);
+        for (let i = 0; i < os.cpus().length * 2; i++) {
+            console.log(`Forking process number ${i}`);
+            cluster.fork();
+        }
+    } else {
+        console.log(`Worker ${process.pid} is running...`);
+        const fullPath = path.join(__dirname, './index.html');
+        const readStream = fs.createReadStream(fullPath);
+
+        const server = http.createServer((req, res) => {
+            setInterval(() => {
+                console.log(`Worker ${process.pid} handling request`);
+                res.writeHead(200, {
+                    'Content-Type': 'text/html',
+                });
+                readStream.pipe(res);
+            }, 5000);
+        });
+
+        server.listen(5555);
+    }
+
+}
+function hw5() {
+    const http = require("http");
+    const path = require("path");
+    const fs = require("fs");
+
+    const server = http.createServer((req, res) => {
+        const query = req.url.slice(1);
+        let fullPath = path.join(__dirname, query);
+
+        if (isFile(fullPath)) {
+            getFile(res, fullPath);
+        } else {
+            getDirList(res, fullPath);
+        }
+
+    }).listen(5555, 'localhost');
+
+    const isFile = (fileName) => fs.lstatSync(fileName).isFile();
+
+    function gotobackLink(res, filePath) {
+        //Чтобы в файле можно было вернуться назад
+        const absolutePath = path.resolve(filePath, '..');
+        const goToBackPath = path.relative(__dirname, absolutePath);
+        res.write(`<a href="/${goToBackPath}"
+            style="position:absolute; top:0; left:0; background: blue; color: #fff; border-radius: 20px;padding:2px 5px; margin: 2px; text-decoration: none;">
+            Back... </a><br>\n`);
+    }
+
+    function getFile(res, filePath) {
+        gotobackLink(res, filePath);
+
+        const readStream = fs.createReadStream(filePath);
+        readStream.pipe(res);
+    }
+
+    function getDirList(res, filePath) {
+        const fileList = fs.readdirSync(filePath);
+        if (filePath !== __dirname) {
+            gotobackLink(res, filePath);
+        }
+        let dirList = ``;
+        for (let item of fileList) {
+            const relativePath = path.relative(__dirname, filePath);
+            fullPath = path.join(relativePath, item);
+
+            dirList += `<a href="/${fullPath}">${item}</a><br>`;
+        }
+
+        res.end(dirList);
+    }
+
+}
+
 
 //hw1();
 //lesson2();
 //hw2(); // Example: node index 10-02-02-2022
 //lesson3();
-hw3();
-
+//hw3();
+//lesson4(); // CLI
+//lesson5(); //HTTP 
+hw5();
