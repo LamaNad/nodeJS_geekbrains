@@ -344,6 +344,7 @@ function lesson5() {
     const path = require("path");
     const cluster = require('cluster');
     const os = require('os');
+    const fs = require("fs");
 
     // const fullPath = path.join(__dirname, './index.html');
     // const readStream = fs.createReadStream(fullPath);
@@ -439,6 +440,59 @@ function lesson5() {
     }
 
 }
+function hw5() {
+    const http = require("http");
+    const path = require("path");
+    const fs = require("fs");
+
+    const server = http.createServer((req, res) => {
+        const query = req.url.slice(1);
+        let fullPath = path.join(__dirname, query);
+
+        if (isFile(fullPath)) {
+            getFile(res, fullPath);
+        } else {
+            getDirList(res, fullPath);
+        }
+
+    }).listen(5555, 'localhost');
+
+    const isFile = (fileName) => fs.lstatSync(fileName).isFile();
+
+    function gotobackLink(res, filePath) {
+        //Чтобы в файле можно было вернуться назад
+        const absolutePath = path.resolve(filePath, '..');
+        const goToBackPath = path.relative(__dirname, absolutePath);
+        res.write(`<a href="/${goToBackPath}"
+            style="position:absolute; top:0; left:0; background: blue; color: #fff; border-radius: 20px;padding:2px 5px; margin: 2px; text-decoration: none;">
+            Back... </a><br>\n`);
+    }
+
+    function getFile(res, filePath) {
+        gotobackLink(res, filePath);
+
+        const readStream = fs.createReadStream(filePath);
+        readStream.pipe(res);
+    }
+
+    function getDirList(res, filePath) {
+        const fileList = fs.readdirSync(filePath);
+        if (filePath !== __dirname) {
+            gotobackLink(res, filePath);
+        }
+        let dirList = ``;
+        for (let item of fileList) {
+            const relativePath = path.relative(__dirname, filePath);
+            fullPath = path.join(relativePath, item);
+
+            dirList += `<a href="/${fullPath}">${item}</a><br>`;
+        }
+
+        res.end(dirList);
+    }
+
+}
+
 
 //hw1();
 //lesson2();
@@ -446,4 +500,5 @@ function lesson5() {
 //lesson3();
 //hw3();
 //lesson4(); // CLI
-lesson5(); //HTTP 
+//lesson5(); //HTTP 
+hw5();
